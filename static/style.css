@@ -1,0 +1,169 @@
+body, html {
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  font-family: 'Orbitron', sans-serif;
+  color: #00ffff;
+}
+
+.cyber-bg {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  background: #000;
+}
+
+#matrix {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+}
+
+.cyber-overlay {
+  position: relative;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.cyber-card {
+  background: rgba(0, 15, 25, 0.8);
+  border: 1px solid rgba(0, 255, 255, 0.3);
+  box-shadow: 0 0 25px rgba(0, 255, 255, 0.25);
+  border-radius: 20px;
+  backdrop-filter: blur(10px);
+  animation: pulse 3s infinite ease-in-out;
+}
+
+@keyframes pulse {
+  0%, 100% { box-shadow: 0 0 25px #00ffff66; }
+  50% { box-shadow: 0 0 45px #00ffffaa; }
+}
+
+.cyber-title {
+  color: #00ffff;
+  text-shadow: 0 0 10px #00ffff, 0 0 20px #00ffffaa;
+  letter-spacing: 2px;
+}
+
+/* ✅ FIX 1: Make subtitle text readable */
+.cyber-subtext, .text-muted, p {
+  color: rgba(0, 255, 255, 0.7);
+  text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+}
+
+.cyber-input {
+  background: rgba(255, 255, 255, 0.05);
+  color: #00ffff;
+  border: 1px solid rgba(0, 255, 255, 0.4);
+  border-radius: 10px;
+}
+
+.cyber-input::placeholder {
+  color: #66ffff88;
+}
+
+.cyber-input:focus {
+  outline: none;
+  box-shadow: 0 0 15px #00ffff;
+}
+
+.cyber-btn {
+  background: linear-gradient(90deg, #00ffff, #0066ff);
+  color: white;
+  border-radius: 10px;
+  font-weight: 600;
+  border: none;
+  transition: all 0.3s ease-in-out;
+}
+
+.cyber-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #00ffff;
+}
+
+.cyber-btn-outline {
+  background: transparent;
+  color: #00ffff;
+  border: 2px solid #00ffff55;
+  border-radius: 10px;
+  text-decoration: none;
+  padding: 10px 25px;
+  transition: 0.3s;
+}
+
+.cyber-btn-outline:hover {
+  background: rgba(0, 255, 255, 0.1);
+  box-shadow: 0 0 15px #00ffff;
+}
+
+.result-box {
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.result-text.safe {
+  color: #00ffcc;
+  text-shadow: 0 0 15px #00ffcc;
+}
+
+.result-text.danger {
+  color: #ff4444;
+  text-shadow: 0 0 15px #ff4444;
+}
+
+/* Loader bar */
+.scanner-bar {
+  width: 80%;
+  height: 10px;
+  border-radius: 10px;
+  background: rgba(0, 255, 255, 0.1);
+  overflow: hidden;
+  border: 1px solid rgba(0, 255, 255, 0.3);
+}
+
+.scanner-progress {
+  width: 0%;
+  height: 100%;
+  background: linear-gradient(90deg, #00ffff, #00ccff, #0099ff);
+  animation: scanProgress 3.5s ease-in-out forwards;
+  box-shadow: 0 0 15px #00ffff;
+}
+
+@keyframes scanProgress {
+  0% { width: 0%; }
+  100% { width: 100%; }
+}
+
+.scan-status {
+  color: #00ffff;
+  font-size: 1.1rem;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  50% { opacity: 0.6; }
+}
+
+/* ❌ FIX 2: Remove circular percentage */
+.circular-chart,
+.circle-bg,
+.circle,
+.percentage {
+  display: none !important;
+}
+
+/* Optional glowing divider instead of % circle */
+.cyber-divider {
+  width: 100px;
+  height: 4px;
+  background: linear-gradient(90deg, #00ffff, #0077ff);
+  margin: 20px auto;
+  border-radius: 10px;
+  box-shadow: 0 0 15px #00ffff;
+}
