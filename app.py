@@ -1,7 +1,6 @@
 from flask import Flask, render_template, request
 import os
 import re
-import ipaddress
 import socket
 import requests
 import whois
@@ -13,6 +12,7 @@ import pickle
 import numpy as np
 import warnings
 import math
+
 warnings.filterwarnings('ignore')
 
 # ---------------- Flask Setup ----------------
@@ -28,7 +28,6 @@ print("✅ Loaded xgb_model.pkl (XGBoost Model)")
 # ---------------- Feature Extraction ----------------
 class FeatureExtraction:
     def __init__(self, url):
-        self.features = []
         self.url = url if url.startswith(("http://", "https://")) else "http://" + url
         self.domain = ""
         self.whois_response = None
@@ -54,7 +53,7 @@ class FeatureExtraction:
         except:
             self.whois_response = None
 
-        # Extract 30 core features (same as before)
+        # Extract 30 base features
         self.features = [
             self.UsingIp(), self.longUrl(), self.shortUrl(), self.symbol(),
             self.redirecting(), self.prefixSuffix(), self.SubDomains(), self.Hppts(),
@@ -66,7 +65,7 @@ class FeatureExtraction:
             self.GoogleIndex(), self.LinksPointingToPage(), self.StatsReport()
         ]
 
-        # Add 3 lexical features to match XGBoost model
+        # Add 3 lexical features (to match updated XGBoost model)
         digit_count = sum(c.isdigit() for c in self.url)
         special_count = sum(c in '-@?%=&.' for c in self.url)
         probs = [float(self.url.count(c)) / len(self.url) for c in dict.fromkeys(self.url)]
@@ -78,8 +77,8 @@ class FeatureExtraction:
     def UsingIp(self):
         try:
             host = self.urlparse.netloc.split(':')[0]
-            parts = host.split('.')
-            if all(p.isdigit() for p in parts): return -1
+            if all(p.isdigit() for p in host.split('.')):
+                return -1
             return 1
         except: return 1
 
@@ -103,8 +102,7 @@ class FeatureExtraction:
         if dots == 2: return 0
         return -1
 
-    def Hppts(self):
-        return 1 if self.urlparse.scheme == "https" else -1
+    def Hppts(self): return 1 if self.urlparse.scheme == "https" else -1
 
     def DomainRegLen(self):
         try:
@@ -169,6 +167,7 @@ class FeatureExtraction:
             return -1
         except: return -1
 
+    # The rest are default or placeholder values
     def LinksInScriptTags(self): return 1
     def ServerFormHandler(self): return 1
     def InfoEmail(self): return 1
@@ -186,8 +185,8 @@ class FeatureExtraction:
     def LinksPointingToPage(self): return 1
     def StatsReport(self): return 1
 
-    def getFeaturesList(self):
-        return self.features
+    def getFeaturesList(self): return self.features
+
 
 # ---------------- Routes ----------------
 @app.route('/')
@@ -204,10 +203,8 @@ def scan():
     url = request.form.get('url', '')
     obj = FeatureExtraction(url)
     feats = np.array(obj.getFeaturesList()).reshape(1, -1)
-
     pred = gbc.predict(feats)[0]
 
-    # New label mapping (XGBoost uses 0=phishing, 1=safe)
     if pred == 1:
         label = "✅ Safe Website"
         threat = "Low Risk"
@@ -217,6 +214,8 @@ def scan():
 
     return render_template('result.html', result=label, threat=threat)
 
-# ---------------- Run ----------------
+
+# ---------------- Run for Railway ----------------
 if __name__ == '__main__':
-    app.run(debug=True)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port)
