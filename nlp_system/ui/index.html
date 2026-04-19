@@ -1,625 +1,682 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>🛡️ Phishing Message Detector - NLP-Powered</title>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-        }
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+      }
 
-        .container {
-            width: 100%;
-            max-width: 1000px;
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            overflow: hidden;
-        }
+      .container {
+        width: 100%;
+        max-width: 1000px;
+        background: white;
+        border-radius: 20px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+        overflow: hidden;
+      }
 
-        .header {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            padding: 40px 30px;
-            text-align: center;
-        }
+      .header {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+        padding: 40px 30px;
+        text-align: center;
+      }
 
+      .header h1 {
+        font-size: 2.5em;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+      }
+
+      .header p {
+        font-size: 1.1em;
+        opacity: 0.9;
+      }
+
+      .main-content {
+        padding: 40px;
+      }
+
+      .input-section {
+        margin-bottom: 30px;
+      }
+
+      .input-label {
+        display: block;
+        font-weight: 600;
+        color: #333;
+        margin-bottom: 10px;
+        font-size: 1.1em;
+      }
+
+      .input-group {
+        display: flex;
+        gap: 10px;
+        flex-wrap: wrap;
+      }
+
+      #messageInput {
+        flex: 1;
+        min-width: 250px;
+        padding: 15px 20px;
+        border: 2px solid #e0e0e0;
+        border-radius: 10px;
+        font-size: 1em;
+        transition: all 0.3s ease;
+      }
+
+      #messageInput:focus {
+        outline: none;
+        border-color: #667eea;
+        box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+      }
+
+      .button-group {
+        display: flex;
+        gap: 10px;
+      }
+
+      button {
+        padding: 15px 30px;
+        border: none;
+        border-radius: 10px;
+        font-weight: 600;
+        cursor: pointer;
+        font-size: 1em;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+      }
+
+      .btn-predict {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        color: white;
+      }
+
+      .btn-predict:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
+      }
+
+      .btn-predict:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+        transform: none;
+      }
+
+      .btn-clear {
+        background: #f0f0f0;
+        color: #333;
+      }
+
+      .btn-clear:hover {
+        background: #e0e0e0;
+      }
+
+      /* Results Section */
+      .results-section {
+        display: none;
+        margin-top: 40px;
+        padding-top: 30px;
+        border-top: 2px solid #f0f0f0;
+      }
+
+      .results-section.show {
+        display: block;
+        animation: slideUp 0.5s ease;
+      }
+
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(20px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      .prediction-card {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        border-radius: 15px;
+        padding: 30px;
+        margin-bottom: 20px;
+      }
+
+      .prediction-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 20px;
+      }
+
+      .prediction-title {
+        font-size: 1.8em;
+        font-weight: 700;
+      }
+
+      .prediction-phishing {
+        color: #e74c3c;
+      }
+
+      .prediction-safe {
+        color: #27ae60;
+      }
+
+      .confidence-badge {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 1.2em;
+        font-weight: 600;
+      }
+
+      .confidence-meter {
+        width: 150px;
+        height: 25px;
+        background: #e0e0e0;
+        border-radius: 12px;
+        overflow: hidden;
+      }
+
+      .confidence-fill {
+        height: 100%;
+        background: linear-gradient(
+          90deg,
+          #27ae60 0%,
+          #f39c12 50%,
+          #e74c3c 100%
+        );
+        transition: width 0.5s ease;
+        border-radius: 12px;
+      }
+
+      .risk-level {
+        display: inline-block;
+        padding: 8px 16px;
+        border-radius: 25px;
+        font-weight: 600;
+        font-size: 0.9em;
+        margin-top: 10px;
+      }
+
+      .risk-very-low {
+        background: #d4edda;
+        color: #155724;
+      }
+      .risk-low {
+        background: #cfe2ff;
+        color: #084298;
+      }
+      .risk-medium {
+        background: #fff3cd;
+        color: #664d03;
+      }
+      .risk-high {
+        background: #f8d7da;
+        color: #842029;
+      }
+      .risk-very-high {
+        background: #f5c2c7;
+        color: #842029;
+      }
+
+      /* Reasons Section */
+      .reasons-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+      }
+
+      .section-title {
+        font-size: 1.3em;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .reasons-list {
+        list-style: none;
+      }
+
+      .reasons-list li {
+        padding: 12px 0;
+        color: #555;
+        font-size: 1.05em;
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .reasons-list li:before {
+        content: "⚠️";
+        font-size: 1.2em;
+        flex-shrink: 0;
+      }
+
+      /* Highlighted Words */
+      .highlighted-section {
+        background: white;
+        border-radius: 15px;
+        padding: 25px;
+        margin-bottom: 20px;
+      }
+
+      .words-container {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .word-badge {
+        background: #ffe5e5;
+        color: #e74c3c;
+        padding: 8px 15px;
+        border-radius: 20px;
+        font-weight: 600;
+        font-size: 0.95em;
+        border: 1px solid #f5a6a6;
+      }
+
+      /* Pattern Analysis */
+      .patterns-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 15px;
+        margin-top: 15px;
+      }
+
+      .pattern-card {
+        background: white;
+        border-left: 4px solid #667eea;
+        padding: 15px;
+        border-radius: 8px;
+        text-align: center;
+      }
+
+      .pattern-value {
+        font-size: 2em;
+        font-weight: 700;
+        color: #667eea;
+      }
+
+      .pattern-label {
+        color: #666;
+        font-size: 0.9em;
+        margin-top: 5px;
+      }
+
+      /* Loading Indicator */
+      .loading {
+        display: none;
+        text-align: center;
+        padding: 20px;
+      }
+
+      .loading.show {
+        display: block;
+      }
+
+      .spinner {
+        border: 4px solid #f3f3f3;
+        border-top: 4px solid #667eea;
+        border-radius: 50%;
+        width: 40px;
+        height: 40px;
+        animation: spin 1s linear infinite;
+        margin: 0 auto 15px;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      /* Statistics */
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+        gap: 15px;
+        margin-bottom: 20px;
+        margin-top: 15px;
+      }
+
+      .stat-item {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        padding: 15px;
+        border-radius: 10px;
+        text-align: center;
+      }
+
+      .stat-value {
+        font-size: 1.8em;
+        font-weight: 700;
+        color: #667eea;
+      }
+
+      .stat-label {
+        color: #666;
+        font-size: 0.85em;
+        margin-top: 5px;
+      }
+
+      /* Responsive */
+      @media (max-width: 768px) {
         .header h1 {
-            font-size: 2.5em;
-            margin-bottom: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 15px;
-        }
-
-        .header p {
-            font-size: 1.1em;
-            opacity: 0.9;
+          font-size: 1.8em;
         }
 
         .main-content {
-            padding: 40px;
-        }
-
-        .input-section {
-            margin-bottom: 30px;
-        }
-
-        .input-label {
-            display: block;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 10px;
-            font-size: 1.1em;
+          padding: 20px;
         }
 
         .input-group {
-            display: flex;
-            gap: 10px;
-            flex-wrap: wrap;
+          flex-direction: column;
         }
 
         #messageInput {
-            flex: 1;
-            min-width: 250px;
-            padding: 15px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1em;
-            transition: all 0.3s ease;
+          min-width: auto;
         }
 
-        #messageInput:focus {
-            outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
-        }
-
-        .button-group {
-            display: flex;
-            gap: 10px;
-        }
-
-        button {
-            padding: 15px 30px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 1em;
-            transition: all 0.3s ease;
-            white-space: nowrap;
-        }
-
-        .btn-predict {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-        }
-
-        .btn-predict:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(102, 126, 234, 0.3);
-        }
-
-        .btn-predict:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .btn-clear {
-            background: #f0f0f0;
-            color: #333;
-        }
-
-        .btn-clear:hover {
-            background: #e0e0e0;
-        }
-
-        /* Results Section */
-        .results-section {
-            display: none;
-            margin-top: 40px;
-            padding-top: 30px;
-            border-top: 2px solid #f0f0f0;
-        }
-
-        .results-section.show {
-            display: block;
-            animation: slideUp 0.5s ease;
-        }
-
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(20px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .prediction-card {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            border-radius: 15px;
-            padding: 30px;
-            margin-bottom: 20px;
-        }
-
-        .prediction-header {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
-
-        .prediction-title {
-            font-size: 1.8em;
-            font-weight: 700;
-        }
-
-        .prediction-phishing {
-            color: #e74c3c;
-        }
-
-        .prediction-safe {
-            color: #27ae60;
-        }
-
-        .confidence-badge {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 1.2em;
-            font-weight: 600;
-        }
-
-        .confidence-meter {
-            width: 150px;
-            height: 25px;
-            background: #e0e0e0;
-            border-radius: 12px;
-            overflow: hidden;
-        }
-
-        .confidence-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #27ae60 0%, #f39c12 50%, #e74c3c 100%);
-            transition: width 0.5s ease;
-            border-radius: 12px;
-        }
-
-        .risk-level {
-            display: inline-block;
-            padding: 8px 16px;
-            border-radius: 25px;
-            font-weight: 600;
-            font-size: 0.9em;
-            margin-top: 10px;
-        }
-
-        .risk-very-low { background: #d4edda; color: #155724; }
-        .risk-low { background: #cfe2ff; color: #084298; }
-        .risk-medium { background: #fff3cd; color: #664d03; }
-        .risk-high { background: #f8d7da; color: #842029; }
-        .risk-very-high { background: #f5c2c7; color: #842029; }
-
-        /* Reasons Section */
-        .reasons-section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-
-        .section-title {
-            font-size: 1.3em;
-            font-weight: 700;
-            color: #333;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .reasons-list {
-            list-style: none;
-        }
-
-        .reasons-list li {
-            padding: 12px 0;
-            color: #555;
-            font-size: 1.05em;
-            display: flex;
-            align-items: flex-start;
-            gap: 12px;
-        }
-
-        .reasons-list li:before {
-            content: "⚠️";
-            font-size: 1.2em;
-            flex-shrink: 0;
-        }
-
-        /* Highlighted Words */
-        .highlighted-section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 20px;
-        }
-
-        .words-container {
-            display: flex;
-            flex-wrap: wrap;
-            gap: 10px;
-        }
-
-        .word-badge {
-            background: #ffe5e5;
-            color: #e74c3c;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-weight: 600;
-            font-size: 0.95em;
-            border: 1px solid #f5a6a6;
-        }
-
-        /* Pattern Analysis */
         .patterns-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 15px;
-            margin-top: 15px;
+          grid-template-columns: 1fr 1fr;
         }
-
-        .pattern-card {
-            background: white;
-            border-left: 4px solid #667eea;
-            padding: 15px;
-            border-radius: 8px;
-            text-align: center;
-        }
-
-        .pattern-value {
-            font-size: 2em;
-            font-weight: 700;
-            color: #667eea;
-        }
-
-        .pattern-label {
-            color: #666;
-            font-size: 0.9em;
-            margin-top: 5px;
-        }
-
-        /* Loading Indicator */
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-
-        .loading.show {
-            display: block;
-        }
-
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 15px;
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-        }
-
-        /* Statistics */
-        .stats-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-            gap: 15px;
-            margin-bottom: 20px;
-            margin-top: 15px;
-        }
-
-        .stat-item {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            padding: 15px;
-            border-radius: 10px;
-            text-align: center;
-        }
-
-        .stat-value {
-            font-size: 1.8em;
-            font-weight: 700;
-            color: #667eea;
-        }
-
-        .stat-label {
-            color: #666;
-            font-size: 0.85em;
-            margin-top: 5px;
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .header h1 {
-                font-size: 1.8em;
-            }
-
-            .main-content {
-                padding: 20px;
-            }
-
-            .input-group {
-                flex-direction: column;
-            }
-
-            #messageInput {
-                min-width: auto;
-            }
-
-            .patterns-grid {
-                grid-template-columns: 1fr 1fr;
-            }
-        }
+      }
     </style>
-</head>
-<body>
+  </head>
+  <body>
     <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <h1>
-                🛡️ Phishing Message Detector
-            </h1>
-            <p>Advanced NLP-powered detection with explainable AI</p>
+      <!-- Header -->
+      <div class="header">
+        <h1>🛡️ Phishing Message Detector</h1>
+        <p>Advanced NLP-powered detection with explainable AI</p>
+      </div>
+
+      <!-- Main Content -->
+      <div class="main-content">
+        <!-- Input Section -->
+        <div class="input-section">
+          <label class="input-label">📝 Enter a message to check:</label>
+          <div class="input-group">
+            <textarea
+              id="messageInput"
+              placeholder="Paste SMS, email, or chat message here... Example: 'Your account is blocked. Click here to verify immediately.'"
+              style="min-height: 100px; resize: vertical"
+            ></textarea>
+          </div>
+          <div class="button-group" style="margin-top: 15px">
+            <button class="btn-predict" onclick="predictMessage()">
+              🔍 Check Message
+            </button>
+            <button class="btn-clear" onclick="clearInput()">🗑️ Clear</button>
+          </div>
         </div>
 
-        <!-- Main Content -->
-        <div class="main-content">
-            <!-- Input Section -->
-            <div class="input-section">
-                <label class="input-label">📝 Enter a message to check:</label>
-                <div class="input-group">
-                    <textarea
-                        id="messageInput"
-                        placeholder="Paste SMS, email, or chat message here... Example: 'Your account is blocked. Click here to verify immediately.'"
-                        style="min-height: 100px; resize: vertical;"
-                    ></textarea>
-                </div>
-                <div class="button-group" style="margin-top: 15px;">
-                    <button class="btn-predict" onclick="predictMessage()">🔍 Check Message</button>
-                    <button class="btn-clear" onclick="clearInput()">🗑️ Clear</button>
-                </div>
-            </div>
-
-            <!-- Loading Indicator -->
-            <div id="loadingIndicator" class="loading">
-                <div class="spinner"></div>
-                <p>Analyzing message...</p>
-            </div>
-
-            <!-- Results Section -->
-            <div id="resultsSection" class="results-section">
-                <!-- Prediction Card -->
-                <div class="prediction-card">
-                    <div class="prediction-header">
-                        <div>
-                            <div class="prediction-title">
-                                <span id="predictionText">PHISHING</span>
-                            </div>
-                            <div id="riskBadge" class="risk-level"></div>
-                        </div>
-                        <div class="confidence-badge">
-                            <div>
-                                <div style="font-size: 0.7em; color: #666; margin-bottom: 5px;">Confidence</div>
-                                <div style="font-size: 1.5em;" id="confidencePercent">92%</div>
-                            </div>
-                            <div class="confidence-meter">
-                                <div id="confidenceFill" class="confidence-fill" style="width: 92%;"></div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Statistics -->
-                <div class="stats-grid">
-                    <div class="stat-item">
-                        <div class="stat-value" id="statURLs">0</div>
-                        <div class="stat-label">URLs Found</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="statUrgent">0</div>
-                        <div class="stat-label">Urgent Words</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="statFinancial">0</div>
-                        <div class="stat-label">Financial Keywords</div>
-                    </div>
-                    <div class="stat-item">
-                        <div class="stat-value" id="statSuspicious">0</div>
-                        <div class="stat-label">Suspicious Words</div>
-                    </div>
-                </div>
-
-                <!-- Reasons -->
-                <div class="reasons-section">
-                    <div class="section-title">📋 Why This Classification?</div>
-                    <ul class="reasons-list" id="reasonsList"></ul>
-                </div>
-
-                <!-- Highlighted Words -->
-                <div class="highlighted-section">
-                    <div class="section-title">⚠️ All Flagged Words & Patterns</div>
-                    <div class="words-container" id="highlightedWords"></div>
-                </div>
-
-                <!-- Pattern Analysis -->
-                <div class="reasons-section">
-                    <div class="section-title">📊 Detailed Pattern Analysis</div>
-                    <div class="patterns-grid" id="patternsGrid"></div>
-                </div>
-            </div>
+        <!-- Loading Indicator -->
+        <div id="loadingIndicator" class="loading">
+          <div class="spinner"></div>
+          <p>Analyzing message...</p>
         </div>
+
+        <!-- Results Section -->
+        <div id="resultsSection" class="results-section">
+          <!-- Prediction Card -->
+          <div class="prediction-card">
+            <div class="prediction-header">
+              <div>
+                <div class="prediction-title">
+                  <span id="predictionText">PHISHING</span>
+                </div>
+                <div id="riskBadge" class="risk-level"></div>
+              </div>
+              <div class="confidence-badge">
+                <div>
+                  <div
+                    style="font-size: 0.7em; color: #666; margin-bottom: 5px"
+                  >
+                    Confidence
+                  </div>
+                  <div style="font-size: 1.5em" id="confidencePercent">92%</div>
+                </div>
+                <div class="confidence-meter">
+                  <div
+                    id="confidenceFill"
+                    class="confidence-fill"
+                    style="width: 92%"
+                  ></div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Statistics -->
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-value" id="statURLs">0</div>
+              <div class="stat-label">URLs Found</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="statUrgent">0</div>
+              <div class="stat-label">Urgent Words</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="statFinancial">0</div>
+              <div class="stat-label">Financial Keywords</div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-value" id="statSuspicious">0</div>
+              <div class="stat-label">Suspicious Words</div>
+            </div>
+          </div>
+
+          <!-- Reasons -->
+          <div class="reasons-section">
+            <div class="section-title">📋 Why This Classification?</div>
+            <ul class="reasons-list" id="reasonsList"></ul>
+          </div>
+
+          <!-- Highlighted Words -->
+          <div class="highlighted-section">
+            <div class="section-title">⚠️ All Flagged Words & Patterns</div>
+            <div class="words-container" id="highlightedWords"></div>
+          </div>
+
+          <!-- Pattern Analysis -->
+          <div class="reasons-section">
+            <div class="section-title">📊 Detailed Pattern Analysis</div>
+            <div class="patterns-grid" id="patternsGrid"></div>
+          </div>
+        </div>
+      </div>
     </div>
 
     <!-- JavaScript -->
     <script>
-        const API_URL = 'http://localhost:8000';
+      const API_URL = "http://localhost:8000";
 
-        async function predictMessage() {
-            const message = document.getElementById('messageInput').value.trim();
-            const modelType = 'gradient_boosting'; // Using Gradient Boosting model
+      async function predictMessage() {
+        const message = document.getElementById("messageInput").value.trim();
+        const modelType = "gradient_boosting"; // Using Gradient Boosting model
 
-            if (!message) {
-                alert('Please enter a message to check');
-                return;
-            }
-
-            // Show loading
-            document.getElementById('loadingIndicator').classList.add('show');
-            document.getElementById('resultsSection').classList.remove('show');
-
-            try {
-                const response = await fetch(`${API_URL}/predict`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        text: message,
-                        model_type: modelType
-                    })
-                });
-
-                if (!response.ok) {
-                    const error = await response.json();
-                    throw new Error(error.detail || 'Prediction failed');
-                }
-
-                const result = await response.json();
-                displayResults(result);
-
-            } catch (error) {
-                alert('Error: ' + error.message);
-                console.error('Error:', error);
-            } finally {
-                document.getElementById('loadingIndicator').classList.remove('show');
-            }
+        if (!message) {
+          alert("Please enter a message to check");
+          return;
         }
 
-        function displayResults(result) {
-            // Prediction
-            const predictionText = result.prediction.toUpperCase();
-            const isPhishing = result.prediction === 'phishing';
-            const predictionElement = document.getElementById('predictionText');
-            predictionElement.textContent = predictionText;
-            predictionElement.className = isPhishing ? 'prediction-phishing' : 'prediction-safe';
+        // Show loading
+        document.getElementById("loadingIndicator").classList.add("show");
+        document.getElementById("resultsSection").classList.remove("show");
 
-            // Confidence
-            const confidencePercent = Math.round(result.confidence * 100);
-            document.getElementById('confidencePercent').textContent = confidencePercent + '%';
-            document.getElementById('confidenceFill').style.width = confidencePercent + '%';
+        try {
+          const response = await fetch(`${API_URL}/predict`, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+            },
+            body: JSON.stringify({
+              text: message,
+              model_type: modelType,
+            }),
+          });
 
-            // Risk Level
-            const riskBadge = document.getElementById('riskBadge');
-            riskBadge.textContent = '⚡ ' + result.risk_level.toUpperCase();
-            riskBadge.className = 'risk-level risk-' + result.risk_level;
+          if (!response.ok) {
+            const error = await response.json();
+            throw new Error(error.detail || "Prediction failed");
+          }
 
-            // Statistics
-            document.getElementById('statURLs').textContent = result.suspicious_patterns.urls_found;
-            document.getElementById('statUrgent').textContent = result.suspicious_patterns.urgent_words;
-            document.getElementById('statFinancial').textContent = result.suspicious_patterns.financial_keywords;
-            document.getElementById('statSuspicious').textContent = result.suspicious_patterns.suspicious_keywords;
+          const result = await response.json();
+          displayResults(result);
+        } catch (error) {
+          alert("Error: " + error.message);
+          console.error("Error:", error);
+        } finally {
+          document.getElementById("loadingIndicator").classList.remove("show");
+        }
+      }
 
-            // Reasons
-            const reasonsList = document.getElementById('reasonsList');
-            reasonsList.innerHTML = '';
-            result.reasons.forEach(reason => {
-                const li = document.createElement('li');
-                li.textContent = reason;
-                reasonsList.appendChild(li);
-            });
+      function displayResults(result) {
+        // Prediction
+        const predictionText = result.prediction.toUpperCase();
+        const isPhishing = result.prediction === "phishing";
+        const predictionElement = document.getElementById("predictionText");
+        predictionElement.textContent = predictionText;
+        predictionElement.className = isPhishing
+          ? "prediction-phishing"
+          : "prediction-safe";
 
-            // Highlighted Words
-            const highlightedWords = document.getElementById('highlightedWords');
-            highlightedWords.innerHTML = '';
-            result.highlighted_text.forEach(word => {
-                const badge = document.createElement('span');
-                badge.className = 'word-badge';
-                badge.textContent = word;
-                highlightedWords.appendChild(badge);
-            });
+        // Confidence
+        const confidencePercent = Math.round(result.confidence * 100);
+        document.getElementById("confidencePercent").textContent =
+          confidencePercent + "%";
+        document.getElementById("confidenceFill").style.width =
+          confidencePercent + "%";
 
-            // Patterns Grid
-            const patternsGrid = document.getElementById('patternsGrid');
-            patternsGrid.innerHTML = '';
-            
-            const patterns = [
-                { label: 'Urgent Words', value: result.suspicious_patterns.urgent_words },
-                { label: 'URLs Found', value: result.suspicious_patterns.urls_found },
-                { label: 'Financial Keywords', value: result.suspicious_patterns.financial_keywords },
-                { label: 'Suspicious Keywords', value: result.suspicious_patterns.suspicious_keywords },
-                { label: 'Capital Words', value: result.suspicious_patterns.capital_words }
-            ];
+        // Risk Level
+        const riskBadge = document.getElementById("riskBadge");
+        riskBadge.textContent = "⚡ " + result.risk_level.toUpperCase();
+        riskBadge.className = "risk-level risk-" + result.risk_level;
 
-            patterns.forEach(p => {
-                const card = document.createElement('div');
-                card.className = 'pattern-card';
-                card.innerHTML = `
+        // Statistics
+        document.getElementById("statURLs").textContent =
+          result.suspicious_patterns.urls_found;
+        document.getElementById("statUrgent").textContent =
+          result.suspicious_patterns.urgent_words;
+        document.getElementById("statFinancial").textContent =
+          result.suspicious_patterns.financial_keywords;
+        document.getElementById("statSuspicious").textContent =
+          result.suspicious_patterns.suspicious_keywords;
+
+        // Reasons
+        const reasonsList = document.getElementById("reasonsList");
+        reasonsList.innerHTML = "";
+        result.reasons.forEach((reason) => {
+          const li = document.createElement("li");
+          li.textContent = reason;
+          reasonsList.appendChild(li);
+        });
+
+        // Highlighted Words
+        const highlightedWords = document.getElementById("highlightedWords");
+        highlightedWords.innerHTML = "";
+        result.highlighted_text.forEach((word) => {
+          const badge = document.createElement("span");
+          badge.className = "word-badge";
+          badge.textContent = word;
+          highlightedWords.appendChild(badge);
+        });
+
+        // Patterns Grid
+        const patternsGrid = document.getElementById("patternsGrid");
+        patternsGrid.innerHTML = "";
+
+        const patterns = [
+          {
+            label: "Urgent Words",
+            value: result.suspicious_patterns.urgent_words,
+          },
+          { label: "URLs Found", value: result.suspicious_patterns.urls_found },
+          {
+            label: "Financial Keywords",
+            value: result.suspicious_patterns.financial_keywords,
+          },
+          {
+            label: "Suspicious Keywords",
+            value: result.suspicious_patterns.suspicious_keywords,
+          },
+          {
+            label: "Capital Words",
+            value: result.suspicious_patterns.capital_words,
+          },
+        ];
+
+        patterns.forEach((p) => {
+          const card = document.createElement("div");
+          card.className = "pattern-card";
+          card.innerHTML = `
                     <div class="pattern-value">${p.value}</div>
                     <div class="pattern-label">${p.label}</div>
                 `;
-                patternsGrid.appendChild(card);
-            });
-
-            // Show results
-            document.getElementById('resultsSection').classList.add('show');
-        }
-
-        function clearInput() {
-            document.getElementById('messageInput').value = '';
-            document.getElementById('resultsSection').classList.remove('show');
-            document.getElementById('messageInput').focus();
-        }
-
-        // Example messages for testing
-        const examplePhishing = "Your bank account has been locked due to suspicious activity. Click here immediately to verify your identity and unlock your account within 24 hours: https://verify-bank-security.com";
-        const exampleLegit = "Hi John, thanks for the meeting today. Let's catch up next week to discuss the project. Have a great day!";
-
-        // Add example message on page load
-        window.addEventListener('load', () => {
-            document.getElementById('messageInput').placeholder = 
-                'Paste SMS, email, or chat message here... Example: "' + examplePhishing.substring(0, 60) + '..."';
+          patternsGrid.appendChild(card);
         });
 
-        // Allow Enter key to trigger prediction
-        document.getElementById('messageInput').addEventListener('keydown', (e) => {
-            if (e.ctrlKey && e.key === 'Enter') {
-                predictMessage();
-            }
+        // Show results
+        document.getElementById("resultsSection").classList.add("show");
+      }
+
+      function clearInput() {
+        document.getElementById("messageInput").value = "";
+        document.getElementById("resultsSection").classList.remove("show");
+        document.getElementById("messageInput").focus();
+      }
+
+      // Example messages for testing
+      const examplePhishing =
+        "Your bank account has been locked due to suspicious activity. Click here immediately to verify your identity and unlock your account within 24 hours: https://verify-bank-security.com";
+      const exampleLegit =
+        "Hi John, thanks for the meeting today. Let's catch up next week to discuss the project. Have a great day!";
+
+      // Add example message on page load
+      window.addEventListener("load", () => {
+        document.getElementById("messageInput").placeholder =
+          'Paste SMS, email, or chat message here... Example: "' +
+          examplePhishing.substring(0, 60) +
+          '..."';
+      });
+
+      // Allow Enter key to trigger prediction
+      document
+        .getElementById("messageInput")
+        .addEventListener("keydown", (e) => {
+          if (e.ctrlKey && e.key === "Enter") {
+            predictMessage();
+          }
         });
     </script>
-</body>
+  </body>
 </html>
